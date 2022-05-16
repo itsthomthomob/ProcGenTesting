@@ -33,25 +33,64 @@ public class Generator : MonoBehaviour
 
     public void GenerateWorld() 
     {
+        // Clear and destroy previous grid
         for (int i = 0; i < allTiles.Count; i++)
         {
             DestroyImmediate(allTiles[i]);
         }
+
         allTiles.Clear();
 
+        // Create new grid
         for (float y = 0; y < sizeY; y++)
         {
             for (float x = 0; x < sizeX; x++)
             {
                 //GameObject assigned to Hex public variable is cloned
-                GameObject tile = (GameObject)Instantiate(Grass);
+                GameObject tile = Instantiate(Grass);
 
                 //Current position in grid
                 Vector2 gridPos = new Vector2(x, y);
                 tile.transform.position = calcWorldCoord(gridPos);
-                //tile.transform.position = new Vector3(tile.transform.position.x, 0, tile.transform.position.y);
                 tile.transform.parent = World.transform;
                 allTiles.Add(tile);
+            }
+        }
+
+        // Randomize and Interpolate Height
+        // random tile
+        float randomHeight = Random.Range(0.0f, 1.0f);
+        int index = Random.Range(0, allTiles.Count);
+        GameObject highestPoint = allTiles[index];
+        
+        // Set height
+        if (TryGetComponent(out EntityTile curTile))
+        {
+            SetHeight(curTile);
+        }
+        
+    }
+
+    public void SetHeight(EntityTile curTile) 
+    {
+        if (curTile.calculatedHeight == false)
+        {
+            Vector3 newPos = new Vector3(curTile.gameObject.transform.position.x, curTile.gameObject.transform.position.y, curTile.gameObject.transform.position.z - 0.1f);
+            curTile.SetPos(newPos);
+            curTile.calculatedHeight = true;
+        }
+        else 
+        {
+            // do next tile
+            for (int i = 0; i < curTile.GetNeighbors().Count; i++)
+            {
+                if (curTile.GetNeighbors()[i].gameObject.TryGetComponent<EntityTile>(out EntityTile newTile)) 
+                {
+                    if (newTile.calculatedHeight == false)
+                    {
+                        SetHeight(newTile);
+                    }
+                }
             }
         }
     }
@@ -71,18 +110,18 @@ public class Generator : MonoBehaviour
     {
         //Position of the first tile tile
         Vector3 initPos = CalcInit();
+
         //Every second row is offset by half of the tile width
         float offset = 0;
         if (gridPos.y % 2 != 0)
             offset = tileWidth / 2;
 
         float x = initPos.x + offset + gridPos.x * tileWidth;
+
         //Every new line is offset in z direction by 3/4 of the tileagon height
         float z = initPos.z - gridPos.y * tileLength * 0.75f;
 
-        float randomHeight = Random.Range(0.0f, 1.0f);
-
-        return new Vector3(x, randomHeight, z);
+        return new Vector3(x, 0, z);
     }
 
     // Simple X-Y grid
