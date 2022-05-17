@@ -27,6 +27,7 @@ public enum NOISE_TYPE { PERLIN, VALUE, SIMPLEX, VORONOI, WORLEY }
 public class Generator : MonoBehaviour
 {
     [Header("Generator Controls")]
+    public float WaterElevation;
     public int sizeX;
     public int sizeY;
     public float tileWidth = 1.0f;
@@ -136,16 +137,33 @@ public class Generator : MonoBehaviour
             {
                 Color curPixel = noiseTexture.GetPixel(x, y);
                 EntityTile curTile = hexGrid[x, y].GetComponent<EntityTile>();
+                GameObject curObject = hexGrid[x, y];
                 float step = Random.Range(0.0f, 0.5f);
                 if (curPixel.grayscale == 1)
                 {
                     Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 1, curTile.GetWorldPos().z);
                     curTile.SetWorldPos(newPos);
                 }
-                else
+                else if (curPixel.grayscale > WaterElevation)
                 {
-                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 + step, curTile.GetWorldPos().z);
+                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0, curTile.GetWorldPos().z);
                     curTile.SetWorldPos(newPos);
+                }
+                else 
+                {
+                    DestroyImmediate(curObject);
+                    hexGrid[x, y] = null;
+                    
+                    GameObject waterTile = Instantiate(Water);
+                    allTiles.Add(waterTile);
+                    waterTile.transform.SetParent(World.transform);
+                    hexGrid[x, y] = waterTile;
+                    
+                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - curPixel.grayscale, curTile.GetWorldPos().z);
+                    
+                    EntityTile newTile = waterTile.GetComponent<EntityTile>();
+                    newTile.SetWorldPos(newPos);
+                    newTile.SetGridPos(newPos);
                 }
             }
         }
