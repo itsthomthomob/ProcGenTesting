@@ -1,38 +1,61 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 
 /// Thank you to TBS Development for sharing his methods on hexagonal terrain generation.
 /// Link here: https://tbswithunity3d.wordpress.com/about/
 /// 
+/// Thank you to Scrawk for his straight-forward implemenation of different noise types.
+/// Link here: https://github.com/Scrawk/Procedural-Noise
+/// 
 /// This is mostly a playground project so I can mess with terrain generation and editor scripts.
 /// 
 /// Modification Log
 /// 
 /// 05-12: Initialization of the project. Implemented basic hexagonal grid generation with hex calculations and editor controls
+/// 05-16: Implemented basic noise manipulation thanks to Scrawk, link abve
 /// 
 /// </summary>
+/// 
+
+public enum NOISE_TYPE { PERLIN, VALUE, SIMPLEX, VORONOI, WORLEY }
 
 [ExecuteInEditMode]
 public class Generator : MonoBehaviour
 {
     [Header("Generator Controls")]
-    public float sizeX;
-    public float sizeY;
+    public int sizeX;
+    public int sizeY;
     public float tileWidth = 1.0f;
     public float tileLength = 1.0f;
+
+    [Header("Map Controls")]
+    public NOISE_TYPE noiseType;
+    public RawImage mapTexture;
+    private int seed = 0;
+    public float frequency = 1.0f;
+    public float amp = 1.0f;
+
+    Texture2D noiseTexture;
+    private Color[] pix;
 
     [Header("Tiles")]
     public GameObject Grass;
     public GameObject Dirt;
     public GameObject Water;
     public GameObject World;
+    public GameObject[,] hexGrid = new GameObject[0,0];
     public List<GameObject> allTiles = new List<GameObject>();
 
     public void GenerateWorld() 
     {
+        // Generate the noise texture
+        hexGrid = new GameObject[sizeX, sizeY];
+        ConstructNoise();
+
         // Clear and destroy previous grid
         for (int i = 0; i < allTiles.Count; i++)
         {
@@ -42,54 +65,87 @@ public class Generator : MonoBehaviour
         allTiles.Clear();
 
         // Create new grid
-        for (float y = 0; y < sizeY; y++)
+        for (int y = 0; y < sizeX; y++)
         {
-            for (float x = 0; x < sizeX; x++)
+            for (int x = 0; x < sizeY; x++)
             {
                 //GameObject assigned to Hex public variable is cloned
                 GameObject tile = Instantiate(Grass);
 
+                //Set tile to grid
+                hexGrid[y, x] = tile;
+
                 //Current position in grid
-                Vector2 gridPos = new Vector2(x, y);
-                tile.transform.position = calcWorldCoord(gridPos);
+                Vector2 gridPos = new Vector2(y, x);
+                EntityTile curTile = tile.GetComponent<EntityTile>();
+                curTile.SetGridPos(calcWorldCoord(gridPos));
+                curTile.SetWorldPos(calcWorldCoord(gridPos));
                 tile.transform.parent = World.transform;
                 allTiles.Add(tile);
             }
         }
 
-        // Randomize and Interpolate Height
-        // random tile
-        float randomHeight = Random.Range(0.0f, 1.0f);
-        int index = Random.Range(0, allTiles.Count);
-        GameObject highestPoint = allTiles[index];
-        
-        // Set height
-        if (TryGetComponent(out EntityTile curTile))
-        {
-            SetHeight(curTile);
-        }
-        
+        SetElevationFromNoise();
     }
 
-    public void SetHeight(EntityTile curTile) 
+    /// <summary>
+    /// Implements the Voronoi Noise method from Scrawk's example.
+    /// </summary>
+    public void ConstructNoise() 
     {
-        if (curTile.calculatedHeight == false)
+        // Set new noise
+        noiseTexture = new Texture2D(sizeX, sizeY);
+        pix = new Color[noiseTexture.width * noiseTexture.height];
+
+        seed = Random.Range(0, 1000);
+
+        VoronoiNoise voronoi = new VoronoiNoise(seed, frequency, amp);
+
+        float[,] arr = new float[sizeX, sizeY];
+
+        //Sample the 2D noise and add it into a array.
+        for (int y = 0; y < sizeY; y++)
         {
-            Vector3 newPos = new Vector3(curTile.gameObject.transform.position.x, curTile.gameObject.transform.position.y, curTile.gameObject.transform.position.z - 0.1f);
-            curTile.SetPos(newPos);
-            curTile.calculatedHeight = true;
-        }
-        else 
-        {
-            // do next tile
-            for (int i = 0; i < curTile.GetNeighbors().Count; i++)
+            for (int x = 0; x < sizeX; x++)
             {
-                if (curTile.GetNeighbors()[i].gameObject.TryGetComponent<EntityTile>(out EntityTile newTile)) 
+                float fx = x / (sizeX - 1.0f);
+                float fy = y / (sizeY - 1.0f);
+
+                arr[x, y] = voronoi.Sample2D(fx, fy);
+            }
+        }
+
+        for (int y = 0; y < sizeY; y++)
+        {
+            for (int x = 0; x < sizeX; x++)
+            {
+                float n = arr[x, y];
+                noiseTexture.SetPixel(x, y, new Color(n, n, n, 1));
+            }
+        }
+
+        noiseTexture.Apply();
+        mapTexture.texture = noiseTexture;
+    }
+
+    public void SetElevationFromNoise() 
+    {
+        for (int x = 0; x < sizeX; x++)
+        {
+            for (int y = 0; y < sizeY; y++)
+            {
+                Color curPixel = noiseTexture.GetPixel(x, y);
+                EntityTile curTile = hexGrid[x, y].GetComponent<EntityTile>();
+                float step = Random.Range(0.0f, 0.5f);
+                if (curPixel.grayscale == 1)
                 {
-                    if (newTile.calculatedHeight == false)
-                    {
-                        SetHeight(newTile);
-                    }
+                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 1, curTile.GetWorldPos().z);
+                    curTile.SetWorldPos(newPos);
+                }
+                else
+                {
+                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 + step, curTile.GetWorldPos().z);
+                    curTile.SetWorldPos(newPos);
                 }
             }
         }
@@ -108,34 +164,19 @@ public class Generator : MonoBehaviour
     //Grid to World converter
     public Vector3 calcWorldCoord(Vector2 gridPos)
     {
-        //Position of the first tile tile
+        //Position of the first tile
         Vector3 initPos = CalcInit();
 
-        //Every second row is offset by half of the tile width
+        //Every second row is offset by half of the tile sizeX
         float offset = 0;
         if (gridPos.y % 2 != 0)
             offset = tileWidth / 2;
 
         float x = initPos.x + offset + gridPos.x * tileWidth;
 
-        //Every new line is offset in z direction by 3/4 of the tileagon height
+        //Every new line is offset in z direction by 3/4 of the tileagon sizeY
         float z = initPos.z - gridPos.y * tileLength * 0.75f;
 
         return new Vector3(x, 0, z);
-    }
-
-    // Simple X-Y grid
-    public void TestGrid() 
-    {
-        for (int x = 0; x < sizeX; x++)
-        {
-            for (int y = 0; y < sizeY; y++)
-            {
-                Vector3 newPos = new Vector3(x, 0, y);
-                GameObject newTile = Instantiate(Grass, newPos, Quaternion.identity);
-                newTile.transform.SetParent(World.transform);
-                allTiles.Add(newTile);
-            }
-        }
     }
 }

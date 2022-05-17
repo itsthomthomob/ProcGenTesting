@@ -6,6 +6,7 @@ public class EntityTile : MonoBehaviour
 {
     public List<GameObject> myNeighbors = new List<GameObject>();
     public bool calculatedHeight;
+    public Vector3 GridPos;
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -20,14 +21,24 @@ public class EntityTile : MonoBehaviour
         return myNeighbors;
     }
 
-    public void SetPos(Vector3 newPos) 
+    public void SetWorldPos(Vector3 newPos) 
     { 
         gameObject.transform.position = newPos;
     }
 
-    public Vector3 GetPos(Vector3 newPos)
+    public Vector3 GetWorldPos(Vector3 newPos)
     {
         return gameObject.transform.position;
+    }
+
+    public void SetGridPos(Vector3 newPos)
+    {
+        GridPos = newPos;
+    }
+
+    public Vector3 GetWorldPos()
+    {
+        return GridPos;
     }
 
 }
