@@ -17,6 +17,8 @@ using UnityEngine.UI;
 /// 
 /// 05-12: Initialization of the project. Implemented basic hexagonal grid generation with hex calculations and editor controls
 /// 05-16: Implemented basic noise manipulation thanks to Scrawk, link abve
+/// 05-18: Painted a new texture in Photoshop for the grass tile
+/// 05-19 to 05-21: Experimentation with normals on the grass tile cap
 /// 
 /// </summary>
 /// 
@@ -141,8 +143,7 @@ public class Generator : MonoBehaviour
                 float step = Random.Range(0.0f, 0.5f);
                 if (curPixel.grayscale == 1)
                 {
-                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 1, curTile.GetWorldPos().z);
-                    curTile.SetWorldPos(newPos);
+                    curTile.transform.localScale = new Vector3(1, 2, 1);
                 }
                 else if (curPixel.grayscale > WaterElevation)
                 {
@@ -159,7 +160,7 @@ public class Generator : MonoBehaviour
                     waterTile.transform.SetParent(World.transform);
                     hexGrid[x, y] = waterTile;
                     
-                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - curPixel.grayscale, curTile.GetWorldPos().z);
+                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - WaterElevation, curTile.GetWorldPos().z);
                     
                     EntityTile newTile = waterTile.GetComponent<EntityTile>();
                     newTile.SetWorldPos(newPos);
