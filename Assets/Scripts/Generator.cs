@@ -57,6 +57,7 @@ public class Generator : MonoBehaviour
     {
         // Generate the noise texture
         hexGrid = new GameObject[sizeX, sizeY];
+
         ConstructNoise();
 
         // Clear and destroy previous grid
@@ -96,39 +97,79 @@ public class Generator : MonoBehaviour
     /// </summary>
     public void ConstructNoise() 
     {
-        // Set new noise
-        noiseTexture = new Texture2D(sizeX, sizeY);
-        pix = new Color[noiseTexture.width * noiseTexture.height];
-
-        seed = Random.Range(0, 1000);
-
-        VoronoiNoise voronoi = new VoronoiNoise(seed, frequency, amp);
-
-        float[,] arr = new float[sizeX, sizeY];
-
-        //Sample the 2D noise and add it into a array.
-        for (int y = 0; y < sizeY; y++)
+        switch (noiseType)
         {
-            for (int x = 0; x < sizeX; x++)
-            {
-                float fx = x / (sizeX - 1.0f);
-                float fy = y / (sizeY - 1.0f);
+            case NOISE_TYPE.PERLIN:
+                // Set new noise
+                noiseTexture = new Texture2D(sizeX, sizeY);
+                pix = new Color[noiseTexture.width * noiseTexture.height];
 
-                arr[x, y] = voronoi.Sample2D(fx, fy);
-            }
+                seed = Random.Range(0, 1000);
+
+                PerlinNoise perlin = new PerlinNoise(seed, frequency, amp);
+
+                float[,] arr = new float[sizeX, sizeY];
+
+                //Sample the 2D noise and add it into a array.
+                for (int y = 0; y < sizeY; y++)
+                {
+                    for (int x = 0; x < sizeX; x++)
+                    {
+                        float fx = x / (sizeX - 1.0f);
+                        float fy = y / (sizeY - 1.0f);
+
+                        arr[x, y] = perlin.Sample2D(fx, fy);
+                    }
+                }
+
+                for (int y = 0; y < sizeY; y++)
+                {
+                    for (int x = 0; x < sizeX; x++)
+                    {
+                        float n = arr[x, y];
+                        noiseTexture.SetPixel(x, y, new Color(n, n, n, 1));
+                    }
+                }
+
+                noiseTexture.Apply();
+                mapTexture.texture = noiseTexture;
+                break;
+            case NOISE_TYPE.VORONOI:
+                // Set new noise
+                noiseTexture = new Texture2D(sizeX, sizeY);
+                pix = new Color[noiseTexture.width * noiseTexture.height];
+
+                seed = Random.Range(0, 1000);
+
+                VoronoiNoise voronoi = new VoronoiNoise(seed, frequency, amp);
+
+                float[,] voarr = new float[sizeX, sizeY];
+
+                //Sample the 2D noise and add it into a array.
+                for (int y = 0; y < sizeY; y++)
+                {
+                    for (int x = 0; x < sizeX; x++)
+                    {
+                        float fx = x / (sizeX - 1.0f);
+                        float fy = y / (sizeY - 1.0f);
+
+                        voarr[x, y] = voronoi.Sample2D(fx, fy);
+                    }
+                }
+
+                for (int y = 0; y < sizeY; y++)
+                {
+                    for (int x = 0; x < sizeX; x++)
+                    {
+                        float n = voarr[x, y];
+                        noiseTexture.SetPixel(x, y, new Color(n, n, n, 1));
+                    }
+                }
+
+                noiseTexture.Apply();
+                mapTexture.texture = noiseTexture;
+                break;
         }
-
-        for (int y = 0; y < sizeY; y++)
-        {
-            for (int x = 0; x < sizeX; x++)
-            {
-                float n = arr[x, y];
-                noiseTexture.SetPixel(x, y, new Color(n, n, n, 1));
-            }
-        }
-
-        noiseTexture.Apply();
-        mapTexture.texture = noiseTexture;
     }
 
     public void SetElevationFromNoise() 
