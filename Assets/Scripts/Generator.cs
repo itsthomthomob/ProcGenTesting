@@ -19,6 +19,7 @@ using UnityEngine.UI;
 /// 05-16: Implemented basic noise manipulation thanks to Scrawk, link abve
 /// 05-18: Painted a new texture in Photoshop for the grass tile
 /// 05-19 to 05-21: Experimentation with normals on the grass tile cap
+/// 06-02: Created the Sand tile. 
 /// 
 /// </summary>
 /// 
@@ -30,6 +31,8 @@ public class Generator : MonoBehaviour
 {
     [Header("Generator Controls")]
     public float WaterElevation;
+    public float SandLevelMin;
+    public float SandLevelMax;
     public int sizeX;
     public int sizeY;
     public float tileWidth = 1.0f;
@@ -47,14 +50,15 @@ public class Generator : MonoBehaviour
 
     [Header("Tiles")]
     public GameObject Grass;
-    public GameObject Dirt;
     public GameObject Water;
+    public GameObject Sand;
     public GameObject World;
     public GameObject[,] hexGrid = new GameObject[0,0];
     public List<GameObject> allTiles = new List<GameObject>();
 
     public void GenerateWorld() 
     {
+        
         // Generate the noise texture
         hexGrid = new GameObject[sizeX, sizeY];
 
@@ -181,32 +185,49 @@ public class Generator : MonoBehaviour
                 Color curPixel = noiseTexture.GetPixel(x, y);
                 EntityTile curTile = hexGrid[x, y].GetComponent<EntityTile>();
                 GameObject curObject = hexGrid[x, y];
-                float step = Random.Range(0.0f, 0.5f);
+                float step = Random.Range(0.0f, 0.25f);
+                curTile.transform.localScale = new Vector3(1, curTile.transform.localScale.y + step, 1);
+
+                // If at ground level
                 if (curPixel.grayscale == 1)
                 {
                     curTile.transform.localScale = new Vector3(1, 2, 1);
                 }
-                else if (curPixel.grayscale > WaterElevation)
-                {
-                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0, curTile.GetWorldPos().z);
-                    curTile.SetWorldPos(newPos);
-                }
-                else 
+
+                if (curPixel.grayscale < WaterElevation)
                 {
                     DestroyImmediate(curObject);
                     hexGrid[x, y] = null;
-                    
+
                     GameObject waterTile = Instantiate(Water);
                     allTiles.Add(waterTile);
                     waterTile.transform.SetParent(World.transform);
                     hexGrid[x, y] = waterTile;
-                    
+
                     Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - WaterElevation, curTile.GetWorldPos().z);
-                    
+
                     EntityTile newTile = waterTile.GetComponent<EntityTile>();
                     newTile.SetWorldPos(newPos);
                     newTile.SetGridPos(newPos);
                 }
+
+                if (curPixel.grayscale >= SandLevelMin && curPixel.grayscale <= SandLevelMax)
+                {
+                    DestroyImmediate(curObject);
+                    hexGrid[x, y] = null;
+
+                    GameObject sand = Instantiate(Sand);
+                    allTiles.Add(sand);
+                    sand.transform.SetParent(World.transform);
+                    hexGrid[x, y] = sand;
+
+                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - WaterElevation, curTile.GetWorldPos().z);
+
+                    EntityTile newTile = sand.GetComponent<EntityTile>();
+                    newTile.SetWorldPos(newPos);
+                    newTile.SetGridPos(newPos);
+                }
+
             }
         }
     }
