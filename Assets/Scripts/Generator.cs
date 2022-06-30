@@ -11,6 +11,8 @@ using UnityEngine.UI;
 /// Thank you to Scrawk for his straight-forward implemenation of different noise types.
 /// Link here: https://github.com/Scrawk/Procedural-Noise
 /// 
+/// Thank you Halis Avakis for providing a great, free-to-use water shader as a baseline
+/// 
 /// This is mostly a playground project so I can mess with terrain generation and editor scripts.
 /// 
 /// Modification Log
@@ -19,7 +21,9 @@ using UnityEngine.UI;
 /// 05-16: Implemented basic noise manipulation thanks to Scrawk, link abve
 /// 05-18: Painted a new texture in Photoshop for the grass tile
 /// 05-19 to 05-21: Experimentation with normals on the grass tile cap
-/// 06-02: Created the Sand tile. 
+/// 06-02: Created the Sand tile
+/// --   : Drew textures for sand, grass, water, and trees 
+/// 06-30: Created water shaders
 /// 
 /// </summary>
 /// 
@@ -199,16 +203,15 @@ public class Generator : MonoBehaviour
                     DestroyImmediate(curObject);
                     hexGrid[x, y] = null;
 
-                    GameObject waterTile = Instantiate(Water);
-                    allTiles.Add(waterTile);
-                    waterTile.transform.SetParent(World.transform);
-                    hexGrid[x, y] = waterTile;
+                    GameObject seaSand = Instantiate(Sand);
+                    hexGrid[x, y] = seaSand;
 
-                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - WaterElevation, curTile.GetWorldPos().z);
+                    Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - 0.99f, curTile.GetWorldPos().z);
 
-                    EntityTile newTile = waterTile.GetComponent<EntityTile>();
+                    EntityTile newTile = seaSand.GetComponent<EntityTile>();
                     newTile.SetWorldPos(newPos);
                     newTile.SetGridPos(newPos);
+                    DestroyImmediate(seaSand);
                 }
 
                 if (curPixel.grayscale >= SandLevelMin && curPixel.grayscale <= SandLevelMax)
