@@ -47,6 +47,20 @@ MonoBehaviour:
   myNeighbors: []
   calculatedHeight: 0
   GridPos: {x: 0, y: 0, z: 0}
+--- !u!64 &2310069917899040738
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1444416570561110964}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -5523277661179574252, guid: 6d74d95a2a03080468f25d333df1f326, type: 3}
 --- !u!1001 &1786505073777876709
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -104,6 +118,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6d74d95a2a03080468f25d333df1f326, type: 3}
+--- !u!1 &1444416570561110964 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 6d74d95a2a03080468f25d333df1f326, type: 3}
+  m_PrefabInstance: {fileID: 1786505073777876709}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2251880744983722254 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6d74d95a2a03080468f25d333df1f326, type: 3}
