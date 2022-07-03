@@ -4,17 +4,29 @@ using UnityEngine;
 
 public class EntityTile : MonoBehaviour
 {
+    public Generator worldGenerator;
+
     public List<GameObject> myNeighbors = new List<GameObject>();
+    [SerializeField]private string TileType;
     public bool calculatedHeight;
     public Vector3 GridPos;
 
-    private void OnCollisionEnter(Collision collision)
+    private void Awake()
     {
-        if (!myNeighbors.Contains(collision.gameObject)) 
-        { 
-            myNeighbors.Add(collision.gameObject);
-        }
+        worldGenerator = FindObjectOfType<Generator>();
     }
+
+    public string GetTileType() 
+    {
+        return TileType;
+    }
+
+    public void SetTileType(string newType) 
+    {
+        TileType = newType;
+    }
+
+
 
     public List<GameObject> GetNeighbors() 
     {

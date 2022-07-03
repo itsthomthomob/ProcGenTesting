@@ -45,17 +45,23 @@ public class Generator : MonoBehaviour
     [Header("Map Controls")]
     public NOISE_TYPE noiseType;
     public RawImage mapTexture;
+    public RawImage bushMapTexture;
     private int seed = 0;
     public float frequency = 1.0f;
     public float amp = 1.0f;
+    public float bushAmpModifer;
+    public float bushFreqModifier;
+    public float BushThreshold;
 
-    Texture2D noiseTexture;
+    Texture2D WorldNoiseTexture;
+    Texture2D BushNoiseTexture;
     private Color[] pix;
 
     [Header("Tiles")]
     public GameObject Grass;
     public GameObject Water;
     public GameObject Sand;
+    public GameObject Bush;
     public GameObject World;
     public GameObject[,] hexGrid = new GameObject[0,0];
     public List<GameObject> allTiles = new List<GameObject>();
@@ -66,7 +72,8 @@ public class Generator : MonoBehaviour
         // Generate the noise texture
         hexGrid = new GameObject[sizeX, sizeY];
 
-        ConstructNoise();
+        ConstructWorldNoise();
+        ConstructBushNoise();
 
         // Clear and destroy previous grid
         for (int i = 0; i < allTiles.Count; i++)
@@ -90,6 +97,7 @@ public class Generator : MonoBehaviour
                 //Current position in grid
                 Vector2 gridPos = new Vector2(y, x);
                 EntityTile curTile = tile.GetComponent<EntityTile>();
+                curTile.SetTileType("Grass");
                 curTile.SetGridPos(calcWorldCoord(gridPos));
                 curTile.SetWorldPos(calcWorldCoord(gridPos));
                 tile.transform.parent = World.transform;
@@ -97,20 +105,21 @@ public class Generator : MonoBehaviour
             }
         }
 
-        SetElevationFromNoise();
+        ConstructWorldTiles();
+        ConstructBushTiles();
     }
 
     /// <summary>
     /// Implements the Voronoi Noise method from Scrawk's example.
     /// </summary>
-    public void ConstructNoise() 
+    public void ConstructWorldNoise() 
     {
         switch (noiseType)
         {
             case NOISE_TYPE.PERLIN:
                 // Set new noise
-                noiseTexture = new Texture2D(sizeX, sizeY);
-                pix = new Color[noiseTexture.width * noiseTexture.height];
+                WorldNoiseTexture = new Texture2D(sizeX, sizeY);
+                pix = new Color[WorldNoiseTexture.width * WorldNoiseTexture.height];
 
                 seed = Random.Range(0, 1000);
 
@@ -135,23 +144,29 @@ public class Generator : MonoBehaviour
                     for (int x = 0; x < sizeX; x++)
                     {
                         float n = arr[x, y];
-                        noiseTexture.SetPixel(x, y, new Color(n, n, n, 1));
+                        WorldNoiseTexture.SetPixel(x, y, new Color(n, n, n, 1));
                     }
                 }
 
-                noiseTexture.Apply();
-                mapTexture.texture = noiseTexture;
+                WorldNoiseTexture.Apply();
+                mapTexture.texture = WorldNoiseTexture;
                 break;
-            case NOISE_TYPE.VORONOI:
+        }
+    }
+    public void ConstructBushNoise()
+    {
+        switch (noiseType)
+        {
+            case NOISE_TYPE.PERLIN:
                 // Set new noise
-                noiseTexture = new Texture2D(sizeX, sizeY);
-                pix = new Color[noiseTexture.width * noiseTexture.height];
+                BushNoiseTexture = new Texture2D(sizeX, sizeY);
+                pix = new Color[BushNoiseTexture.width * BushNoiseTexture.height];
 
-                seed = Random.Range(0, 1000);
+                //seed = seed + 1;
 
-                VoronoiNoise voronoi = new VoronoiNoise(seed, frequency, amp);
+                PerlinNoise perlin = new PerlinNoise(seed, frequency - bushFreqModifier, amp - bushAmpModifer);
 
-                float[,] voarr = new float[sizeX, sizeY];
+                float[,] arr = new float[sizeX, sizeY];
 
                 //Sample the 2D noise and add it into a array.
                 for (int y = 0; y < sizeY; y++)
@@ -161,7 +176,7 @@ public class Generator : MonoBehaviour
                         float fx = x / (sizeX - 1.0f);
                         float fy = y / (sizeY - 1.0f);
 
-                        voarr[x, y] = voronoi.Sample2D(fx, fy);
+                        arr[x, y] = perlin.Sample2D(fx, fy);
                     }
                 }
 
@@ -169,24 +184,24 @@ public class Generator : MonoBehaviour
                 {
                     for (int x = 0; x < sizeX; x++)
                     {
-                        float n = voarr[x, y];
-                        noiseTexture.SetPixel(x, y, new Color(n, n, n, 1));
+                        float n = arr[x, y];
+                        BushNoiseTexture.SetPixel(x, y, new Color(n, n, n, 1));
                     }
                 }
 
-                noiseTexture.Apply();
-                mapTexture.texture = noiseTexture;
+                BushNoiseTexture.Apply();
+                bushMapTexture.texture = BushNoiseTexture;
                 break;
         }
     }
 
-    public void SetElevationFromNoise() 
+    public void ConstructWorldTiles() 
     {
         for (int x = 0; x < sizeX; x++)
         {
             for (int y = 0; y < sizeY; y++)
             {
-                Color curPixel = noiseTexture.GetPixel(x, y);
+                Color curPixel = WorldNoiseTexture.GetPixel(x, y);
                 EntityTile curTile = hexGrid[x, y].GetComponent<EntityTile>();
                 GameObject curObject = hexGrid[x, y];
                 float step = Random.Range(0.0f, 0.25f);
@@ -207,7 +222,7 @@ public class Generator : MonoBehaviour
                     hexGrid[x, y] = seaSand;
 
                     Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - 0.99f, curTile.GetWorldPos().z);
-
+                    curTile.SetTileType("Sand");
                     EntityTile newTile = seaSand.GetComponent<EntityTile>();
                     newTile.SetWorldPos(newPos);
                     newTile.SetGridPos(newPos);
@@ -225,12 +240,46 @@ public class Generator : MonoBehaviour
                     hexGrid[x, y] = sand;
 
                     Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - WaterElevation, curTile.GetWorldPos().z);
-
+                    curTile.SetTileType("Sand");
                     EntityTile newTile = sand.GetComponent<EntityTile>();
                     newTile.SetWorldPos(newPos);
                     newTile.SetGridPos(newPos);
                 }
 
+            }
+        }
+    }
+
+    public void ConstructBushTiles() 
+    {
+        for (int x = 0; x < sizeX; x++)
+        {
+            for (int y = 0; y < sizeY; y++)
+            {
+                Color curPixel = BushNoiseTexture.GetPixel(x, y);
+                if (hexGrid[x, y] != null)
+                {
+                    EntityTile curTile = hexGrid[x, y].GetComponent<EntityTile>();
+                    GameObject curObject = hexGrid[x, y];
+                    float step = Random.Range(0.0f, 0.25f);
+                    curTile.transform.localScale = new Vector3(1, curTile.transform.localScale.y + step, 1);
+
+                    // If grayscale is completely white and 
+                    if (curPixel.grayscale > BushThreshold) 
+                    { 
+                        if (curTile.GetTileType() == "Grass")
+                        {
+                            GameObject newBush = Instantiate(Bush);
+                            EntityTile bush = newBush.GetComponent<EntityTile>();
+                            bush.SetTileType("Bush");
+                            bush.worldGenerator = this;
+                            Bush.transform.position = new Vector3(curObject.transform.position.x, curObject.transform.position.y + 2.1f, curObject.transform.position.z);
+                            newBush.transform.SetParent(World.transform);
+                            allTiles.Add(newBush);
+                        }
+                        curTile.transform.localScale = new Vector3(1, 2, 1);
+                    }
+                }
             }
         }
     }
