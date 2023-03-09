@@ -223,7 +223,7 @@ namespace StylizedWater
             if (!material) return;
             if (material.shader.name != shaderName && material.shader.name != mobileShaderName && material.shader.name != underwaterShaderName) return;
 
-            enableRefraction = (material.IsKeywordEnabled("REFRACTION_ON")) ? true : false;
+            enableRefraction = (material.IsKeywordEnabled("REFRACTION_ON")) ? true : true;
 
             #region Waves
             waveVisuals = material.GetVector("_WaveVisuals");
