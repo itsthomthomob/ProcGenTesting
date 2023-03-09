@@ -105,9 +105,9 @@ public class EntityTile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         return myNeighbors;
     }
 
-    public void SetWorldPos(Vector3 newPos) 
+    public void SetWorldPos(Vector3 newPos, float heightOffset) 
     { 
-        gameObject.transform.position = newPos;
+        gameObject.transform.position = new Vector3(newPos.x, newPos.y + heightOffset, newPos.z);
     }
     public Vector3 GetWorldPos(Vector3 newPos)
     {

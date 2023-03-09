@@ -192,7 +192,7 @@ public class Generator : MonoBehaviour
                 EntityTile curTile = tile.GetComponentInChildren<EntityTile>();
                 curTile.SetEntityCategory(EntityCategory.Surface);
                 curTile.SetGridPos(calcWorldCoord(gridPos));
-                curTile.SetWorldPos(calcWorldCoord(gridPos));
+                //curTile.SetWorldPos(calcWorldCoord(gridPos));
                 tile.transform.parent = World.transform;
                 allTiles.Add(tile);
             }
@@ -308,7 +308,7 @@ public class Generator : MonoBehaviour
                     Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - 0.99f, curTile.GetWorldPos().z);
                     curTile.SetEntityType(EntityType.Sand);
                     EntityTile newTile = seaSand.GetComponentInChildren<EntityTile>();
-                    newTile.SetWorldPos(newPos);
+                    //newTile.SetWorldPos(newPos);
                     newTile.SetGridPos(newPos);
                     DestroyImmediate(seaSand);
                 }
@@ -330,7 +330,7 @@ public class Generator : MonoBehaviour
                     Vector3 newPos = new Vector3(curTile.GetWorldPos().x, 0 - WaterElevation, curTile.GetWorldPos().z);
                     curTile.SetEntityCategory(EntityCategory.Surface);
                     EntityTile newTile = sand.GetComponentInChildren<EntityTile>();
-                    newTile.SetWorldPos(newPos);
+                    //newTile.SetWorldPos(newPos);
                     newTile.SetGridPos(newPos);
                 }
 

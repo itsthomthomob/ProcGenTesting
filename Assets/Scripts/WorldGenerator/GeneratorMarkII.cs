@@ -35,8 +35,12 @@ public class GeneratorMarkII : MonoBehaviour
     public GameObject World;
     public int worldSizeX;
     public int worldSizeY;
-    public float tileWidth = 1.0f;
-    public float tileLength = 1.0f;
+
+    // Keep at 1.75, 2
+    public float tileWidth = 1.75f;
+    public float tileLength = 2.0f;
+    public float sandElevation = 0.20f;
+    public float tileStep = 10;
 
     [Header("Tile Prefabs")]
     public GameObject Grass;
@@ -71,7 +75,7 @@ public class GeneratorMarkII : MonoBehaviour
     public Dictionary<Vector2Int, float> heatPositions;
 
     // Stores the pixels of worldMap that has either grass tile or sand tile (for beaches and sea floor)
-    public Dictionary<Vector2Int, EntityType> landPositions;
+    public Dictionary<Vector2Int, float> landPositions;
 
     [Header("World Details")]
     public GameObject[,] WorldGrid = new GameObject[0,0];
@@ -91,24 +95,20 @@ public class GeneratorMarkII : MonoBehaviour
 
     public void BuildWorld()
     {
-        foreach (KeyValuePair<Vector2Int,EntityType> entry in landPositions)
+        foreach (KeyValuePair<Vector2Int,float> entry in landPositions)
         {
             
             GameObject tile = new GameObject();
 
-            switch (entry.Value)
+            if(entry.Value > sandElevation)
             {
-                case EntityType.Grass:
-                    
-                    GameObject grass = Instantiate(Grass);
-                    tile = grass;
-                    break;
-
-                case EntityType.Sand:
-
-                    GameObject sand = Instantiate(Sand);
-                    tile = sand;
-                    break;
+                GameObject grass = Instantiate(Grass);
+                tile = grass;
+            }
+            else
+            {
+                GameObject sand = Instantiate(Sand);
+                tile = sand;
             }
 
             // Set entity information
@@ -116,7 +116,7 @@ public class GeneratorMarkII : MonoBehaviour
             curTile.SetEntityCategory(EntityCategory.Surface);
 
             // Set world position of game object
-            curTile.SetWorldPos(calcWorldCoord(entry.Key));
+            curTile.SetWorldPos(calcWorldCoord(entry.Key), entry.Value * tileStep);
             curTile.SetGridPos(calcWorldCoord(entry.Key));
 
             tile.transform.parent = World.transform;
@@ -268,7 +268,7 @@ public class GeneratorMarkII : MonoBehaviour
             }
         }
 
-        landPositions = new Dictionary<Vector2Int, EntityType>();
+        landPositions = new Dictionary<Vector2Int, float>();
 
         // Set the pixels for each texture
         for (int y = 0; y < worldSizeY; y++)
@@ -280,15 +280,7 @@ public class GeneratorMarkII : MonoBehaviour
 
                 // Create land map for fast lookup when generating tiles
                 Vector2Int pos = new Vector2Int(x, y);
-
-                if (n >= 0.90f)
-                {
-                    landPositions[pos] = landPositions.GetValueOrDefault(pos, EntityType.Grass);
-                }
-                else
-                {
-                    landPositions[pos] = landPositions.GetValueOrDefault(pos, EntityType.Sand);
-                }
+                landPositions[pos] = landPositions.GetValueOrDefault(pos, n);
             }
         }
 

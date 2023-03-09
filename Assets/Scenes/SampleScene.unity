@@ -995,16 +995,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   World: {fileID: 1121551825}
-  worldSizeX: 100
-  worldSizeY: 100
+  worldSizeX: 200
+  worldSizeY: 200
   tileWidth: 1.75
   tileLength: 2
+  sandElevation: 0.05
+  tileStep: 8
   Grass: {fileID: 7609902897426208155, guid: 5432006965ceebe4dbe672716bb9a651, type: 3}
   Sand: {fileID: 600134104356438906, guid: c91322f0baa1b394fbe874f8d8077c3a, type: 3}
   seed: 0
   generateSeed: 1
   worldFrequency: 3
-  worldAmp: 3
+  worldAmp: 0.7
   rainFrequency: 1
   treeFrequency: 1
   treeAmp: 1
