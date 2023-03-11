@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1825238215405972954}
-  - component: {fileID: 2478073031058066341}
+  - component: {fileID: -1238542768214506603}
   m_Layer: 0
   m_Name: GrassPrefab
   m_TagString: Untagged
@@ -33,7 +33,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!114 &2478073031058066341
+--- !u!114 &-1238542768214506603
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -42,7 +42,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7609902897426208155}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d53882369aee78447aa690b0d1abc973, type: 3}
+  m_Script: {fileID: 11500000, guid: b9a3b5d0738ff0a4883d2580f71c02ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   worldGenerator: {fileID: 0}
@@ -51,6 +51,7 @@ MonoBehaviour:
   calculatedHeight: 0
   GridPos: {x: 0, y: 0, z: 0}
   highlighted: {fileID: 0}
+  name: 
 --- !u!1001 &1036054704579746514
 PrefabInstance:
   m_ObjectHideFlags: 0

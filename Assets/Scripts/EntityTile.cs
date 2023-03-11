@@ -37,6 +37,7 @@ public class EntityTile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     public Vector3 GridPos;
     EntityCategory EntityCategory;
     EntityType EntityType;
+    string name;
 
     [Header("Interactable Vars")]
     public Material highlighted;
@@ -50,6 +51,28 @@ public class EntityTile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         worldGenerator = FindObjectOfType<Generator>();
     }
 
+    //public void BuildTile()
+    //{
+    //    // Hexagonal sides
+    //    // 1001 = top
+    //    // 1002 - 1007 = tides
+
+    //    // Get current materials
+    //    MeshRenderer MR = GetComponentInChildren<MeshRenderer>();
+
+    //    // Find new materials to replace EmptyTile's materials
+    //    Material[] loadedMaterials = new Material[MR.materials.Length];
+    //    Material topMat = Resources.Load<Material>("Entities/Tiles/" + name + "/1001/Mat_1001");
+    //    loadedMaterials[0] = topMat;
+
+    //    for (int i = 1; i < loadedMaterials.Length; i++)
+    //    {
+    //        loadedMaterials[i] = Resources.Load<Material>("Entities/Tiles/" + name + "/100" + i + "/Mat_100" + i);
+    //    }
+
+    //    // Update and set the new materials
+    //    MR.materials = loadedMaterials;
+    //}
 
     public void Selected()
     {
